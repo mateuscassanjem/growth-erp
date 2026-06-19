@@ -1,0 +1,39 @@
+{
+  "name": "Growth ERP",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Prisma.prisma",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  },
+  "forwardPorts": [3000, 3333],
+  "portsAttributes": {
+    "3000": {
+      "label": "Growth ERP Web",
+      "onAutoForward": "openBrowser"
+    },
+    "3333": {
+      "label": "Growth ERP API / Swagger",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "corepack enable && pnpm install",
+  "postAttachCommand": "docker compose up --build",
+  "remoteUser": "node"
+}

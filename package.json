@@ -1,0 +1,21 @@
+{
+  "name": "growth-erp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Growth ERP - SaaS de gestao e crescimento para PME angolanas.",
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --filter @growth/shared build && pnpm --filter @growth/ui build && pnpm --parallel --filter @growth/api --filter @growth/web dev",
+    "build": "pnpm --filter @growth/shared build && pnpm --filter @growth/ui build && pnpm --filter @growth/api build && pnpm --filter @growth/web build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,prisma}\"",
+    "db:migrate": "pnpm --filter @growth/api prisma:migrate",
+    "db:seed": "pnpm --filter @growth/api prisma:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}

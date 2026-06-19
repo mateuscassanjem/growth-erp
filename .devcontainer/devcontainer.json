@@ -1,13 +1,6 @@
 {
   "name": "Growth ERP",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "version": "latest",
-      "moby": true,
-      "dockerDashComposeVersion": "v2"
-    }
-  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -33,7 +26,6 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "corepack enable && pnpm install",
-  "postAttachCommand": "docker compose up --build",
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@9.15.4 --activate && pnpm install",
   "remoteUser": "node"
 }

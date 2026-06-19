@@ -84,6 +84,38 @@ Notas:
 - A documentacao Swagger fica em `/docs`, sem o prefixo `/api`.
 - O header `x-company-id` so e aceite depois de validado contra o utilizador autenticado.
 
+## Sprint 3: Clientes e Produtos
+
+Endpoints de clientes:
+
+```txt
+GET    /api/customers
+GET    /api/customers?search=texto
+GET    /api/customers/:id
+POST   /api/customers
+PATCH  /api/customers/:id
+DELETE /api/customers/:id
+```
+
+Endpoints de produtos e servicos:
+
+```txt
+GET    /api/products
+GET    /api/products?search=texto&type=PRODUCT
+GET    /api/products/:id
+POST   /api/products
+PATCH  /api/products/:id
+DELETE /api/products/:id
+```
+
+Notas da Sprint 3:
+
+- Todas as queries usam o `companyId` do contexto autenticado.
+- Produtos suportam `PRODUCT` e `SERVICE`.
+- Produtos usam stock decimal, stock minimo, IVA por produto e estado `active`.
+- `DELETE /api/products/:id` desativa o produto com `active=false`, preservando historico fiscal.
+- As telas `/customers` e `/products` incluem pesquisa, criacao, edicao e remocao/desativacao.
+
 ## Utilizador seed
 
 - Email: `admin@growtherp.ao`

@@ -30,10 +30,15 @@ export type Customer = {
 
 export type Product = {
   id: ID;
+  type: "PRODUCT" | "SERVICE";
   name: string;
   sku: string | null;
+  description: string | null;
   price: number;
   stock: number;
+  stockMinimum: number;
+  taxRate: number;
+  active: boolean;
   createdAt: string;
 };
 

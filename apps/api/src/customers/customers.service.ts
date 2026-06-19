@@ -1,16 +1,36 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateCustomerDto, UpdateCustomerDto } from "./dto";
+import { CreateCustomerDto, CustomerQueryDto, UpdateCustomerDto } from "./dto";
 
 @Injectable()
 export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(companyId: string) {
+  findAll(companyId: string, query: CustomerQueryDto = {}) {
+    const search = query.search?.trim();
     return this.prisma.customer.findMany({
-      where: { companyId },
+      where: {
+        companyId,
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { phone: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { taxNumber: { contains: search, mode: Prisma.QueryMode.insensitive } }
+              ]
+            }
+          : {})
+      },
       orderBy: { createdAt: "desc" }
     });
+  }
+
+  async findOne(companyId: string, id: string) {
+    const customer = await this.prisma.customer.findFirst({ where: { id, companyId } });
+    if (!customer) throw new NotFoundException("Customer not found");
+    return customer;
   }
 
   create(companyId: string, dto: CreateCustomerDto) {
@@ -29,7 +49,6 @@ export class CustomersService {
   }
 
   private async ensureOwned(companyId: string, id: string) {
-    const customer = await this.prisma.customer.findFirst({ where: { id, companyId } });
-    if (!customer) throw new NotFoundException("Customer not found");
+    await this.findOne(companyId, id);
   }
 }

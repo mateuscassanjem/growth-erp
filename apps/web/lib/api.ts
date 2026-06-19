@@ -64,16 +64,52 @@ export class ApiClient {
     return this.request<Customer[]>("/api/customers");
   }
 
+  searchCustomers(search: string) {
+    return this.request<Customer[]>(`/api/customers?search=${encodeURIComponent(search)}`);
+  }
+
   createCustomer(payload: Partial<Customer>) {
     return this.request<Customer>("/api/customers", { method: "POST", body: payload as Json });
+  }
+
+  updateCustomer(id: string, payload: Partial<Customer>) {
+    return this.request<Customer>(`/api/customers/${id}`, { method: "PATCH", body: payload as Json });
+  }
+
+  deleteCustomer(id: string) {
+    return this.request<{ ok: boolean }>(`/api/customers/${id}`, { method: "DELETE" });
   }
 
   products() {
     return this.request<Product[]>("/api/products");
   }
 
-  createProduct(payload: { name: string; sku: string; price: number; stock: number }) {
+  searchProducts(search: string, type?: "PRODUCT" | "SERVICE") {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (type) params.set("type", type);
+    return this.request<Product[]>(`/api/products?${params.toString()}`);
+  }
+
+  createProduct(payload: {
+    name: string;
+    sku?: string;
+    description?: string;
+    type: "PRODUCT" | "SERVICE";
+    price: number;
+    stock?: number;
+    stockMinimum?: number;
+    taxRate?: number;
+  }) {
     return this.request<Product>("/api/products", { method: "POST", body: payload });
+  }
+
+  updateProduct(id: string, payload: Partial<Product>) {
+    return this.request<Product>(`/api/products/${id}`, { method: "PATCH", body: payload as Json });
+  }
+
+  deleteProduct(id: string) {
+    return this.request<{ ok: boolean }>(`/api/products/${id}`, { method: "DELETE" });
   }
 
   invoices() {

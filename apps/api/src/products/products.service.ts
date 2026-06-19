@@ -1,20 +1,54 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProductType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateProductDto, UpdateProductDto } from "./dto";
+import { CreateProductDto, ProductQueryDto, UpdateProductDto } from "./dto";
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(companyId: string) {
-    return this.prisma.product.findMany({ where: { companyId }, orderBy: { createdAt: "desc" } });
+  findAll(companyId: string, query: ProductQueryDto = {}) {
+    const search = query.search?.trim();
+    return this.prisma.product.findMany({
+      where: {
+        companyId,
+        active: query.active ?? true,
+        ...(query.type ? { type: query.type } : {}),
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { sku: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                { description: { contains: search, mode: Prisma.QueryMode.insensitive } }
+              ]
+            }
+          : {})
+      },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
+  async findOne(companyId: string, id: string) {
+    const product = await this.prisma.product.findFirst({ where: { id, companyId } });
+    if (!product) throw new NotFoundException("Product not found");
+    return product;
   }
 
   async create(companyId: string, dto: CreateProductDto) {
     try {
       return await this.prisma.product.create({
-        data: { ...dto, companyId, price: new Prisma.Decimal(dto.price) }
+        data: {
+          companyId,
+          type: dto.type ?? ProductType.PRODUCT,
+          name: dto.name,
+          sku: dto.sku || null,
+          description: dto.description,
+          price: new Prisma.Decimal(dto.price),
+          stock: new Prisma.Decimal(dto.stock ?? 0),
+          stockMinimum: new Prisma.Decimal(dto.stockMinimum ?? 0),
+          taxRate: new Prisma.Decimal(dto.taxRate ?? 14),
+          active: dto.active ?? true
+        }
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -28,18 +62,27 @@ export class ProductsService {
     await this.ensureOwned(companyId, id);
     return this.prisma.product.update({
       where: { id },
-      data: { ...dto, price: dto.price === undefined ? undefined : new Prisma.Decimal(dto.price) }
+      data: {
+        type: dto.type,
+        name: dto.name,
+        sku: dto.sku,
+        description: dto.description,
+        price: dto.price === undefined ? undefined : new Prisma.Decimal(dto.price),
+        stock: dto.stock === undefined ? undefined : new Prisma.Decimal(dto.stock),
+        stockMinimum: dto.stockMinimum === undefined ? undefined : new Prisma.Decimal(dto.stockMinimum),
+        taxRate: dto.taxRate === undefined ? undefined : new Prisma.Decimal(dto.taxRate),
+        active: dto.active
+      }
     });
   }
 
   async remove(companyId: string, id: string) {
     await this.ensureOwned(companyId, id);
-    await this.prisma.product.delete({ where: { id } });
+    await this.prisma.product.update({ where: { id }, data: { active: false } });
     return { ok: true };
   }
 
   private async ensureOwned(companyId: string, id: string) {
-    const product = await this.prisma.product.findFirst({ where: { id, companyId } });
-    if (!product) throw new NotFoundException("Product not found");
+    await this.findOne(companyId, id);
   }
 }
